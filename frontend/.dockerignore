@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+.npm
+.eslintcache
+*.log
+.env
+.env.local
+.env.*.local
+.vscode/
+.idea/
+.DS_Store

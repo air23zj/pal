@@ -1,0 +1,57 @@
+{
+  "twitter:a6902cce1d951d2f": {
+    "fingerprint": "twitter:a6902cce1d951d2f",
+    "content_hash": "0704219748e7",
+    "first_seen_utc": "2026-01-19T04:12:19.708761+00:00",
+    "last_seen_utc": "2026-01-19T04:12:19.710212+00:00",
+    "seen_count": 4,
+    "source": "twitter",
+    "item_type": "social_post",
+    "title": "@elonmusk: Exciting developments in AI agent frameworks! The future is autonomous.",
+    "last_updated_utc": "2026-01-19T04:12:19.708649+00:00"
+  },
+  "twitter:3853b929ff5946c3": {
+    "fingerprint": "twitter:3853b929ff5946c3",
+    "content_hash": "88b2e1733ca2",
+    "first_seen_utc": "2026-01-19T04:12:19.708761+00:00",
+    "last_seen_utc": "2026-01-19T04:12:19.710212+00:00",
+    "seen_count": 4,
+    "source": "twitter",
+    "item_type": "social_post",
+    "title": "@sama: New research on memory systems for LLMs. Check out our latest paper.",
+    "last_updated_utc": "2026-01-19T04:12:19.708649+00:00"
+  },
+  "twitter:94804b53eff62996": {
+    "fingerprint": "twitter:94804b53eff62996",
+    "content_hash": "44c14607bbf2",
+    "first_seen_utc": "2026-01-19T04:12:19.708761+00:00",
+    "last_seen_utc": "2026-01-19T04:12:19.710212+00:00",
+    "seen_count": 4,
+    "source": "twitter",
+    "item_type": "social_post",
+    "title": "@karpathy: Teaching neural networks to be better at reasoning. Long thread \ud83e\uddf5",
+    "last_updated_utc": "2026-01-19T04:12:19.708649+00:00"
+  },
+  "linkedin:7b6fcf9f1a59edd6": {
+    "fingerprint": "linkedin:7b6fcf9f1a59edd6",
+    "content_hash": "2fce67249b74",
+    "first_seen_utc": "2026-01-19T04:12:19.710212+00:00",
+    "last_seen_utc": "2026-01-19T04:12:19.710212+00:00",
+    "seen_count": 1,
+    "source": "linkedin",
+    "item_type": "social_post",
+    "title": "Satya Nadella: Thrilled to announce our new AI initiatives at Microsoft. The intersection of...",
+    "last_updated_utc": "2026-01-19T04:12:19.709938+00:00"
+  },
+  "linkedin:a12268d19001193a": {
+    "fingerprint": "linkedin:a12268d19001193a",
+    "content_hash": "db3e3207bd85",
+    "first_seen_utc": "2026-01-19T04:12:19.710212+00:00",
+    "last_seen_utc": "2026-01-19T04:12:19.710212+00:00",
+    "seen_count": 1,
+    "source": "linkedin",
+    "item_type": "social_post",
+    "title": "Jensen Huang: GPUs are powering the next generation of AI. Here's what we're building at NV...",
+    "last_updated_utc": "2026-01-19T04:12:19.709938+00:00"
+  }
+}
