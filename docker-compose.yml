@@ -31,6 +31,21 @@ services:
       timeout: 5s
       retries: 5
 
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: morning-brief-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Backend API (FastAPI)
   backend:
     build:
@@ -42,6 +57,7 @@ services:
     environment:
       DATABASE_URL: postgresql://morning_brief:dev_password@postgres:5432/morning_brief
       REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
       SANDBOX_PROVIDER: open-skills
       SANDBOX_ENDPOINT: http://localhost:8222
       LLM_PROVIDER: ollama
@@ -54,6 +70,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      qdrant:
         condition: service_healthy
     command: uvicorn apps.api.main:app --host 0.0.0.0 --port 8000 --reload
 
@@ -77,3 +95,4 @@ services:
 
 volumes:
   postgres_data:
+  qdrant_data:

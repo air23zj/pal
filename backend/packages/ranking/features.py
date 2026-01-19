@@ -119,11 +119,13 @@ class FeatureExtractor:
         """
         Calculate credibility score based on source trustworthiness.
         
+        Uses per-user learned source trust if available, otherwise defaults.
+        
         Returns:
             Score 0.0-1.0 (higher = more credible)
         """
-        # Source credibility weights
-        source_weights = {
+        # Default source credibility weights (fallback if not learned)
+        default_source_weights = {
             "gmail": 0.9,      # Emails are generally credible
             "calendar": 0.95,  # Calendar events are highly credible
             "tasks": 0.9,      # Tasks are credible
@@ -134,7 +136,12 @@ class FeatureExtractor:
             "podcast": 0.6,    # Podcasts vary
         }
         
-        base_score = source_weights.get(item.source, 0.5)
+        # Use learned source trust if available
+        source_trust = self.preferences.get('source_trust', {})
+        if source_trust and item.source in source_trust:
+            base_score = source_trust[item.source]
+        else:
+            base_score = default_source_weights.get(item.source, 0.5)
         
         # Boost credibility for verified or important markers
         if item.type == "email":
