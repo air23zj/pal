@@ -57,4 +57,4 @@ def init_db() -> None:
     """Initialize database (create all tables)"""
     from .models import Base
     Base.metadata.create_all(bind=engine)
-    print("✅ Database tables created")
+    logger.info("✅ Database tables created")

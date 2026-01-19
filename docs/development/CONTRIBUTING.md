@@ -50,7 +50,7 @@ make test-frontend
   - `packages/`: Reusable packages (connectors, memory, ranking, etc.)
 - `frontend/`: Next.js application
 - `tests/`: Integration tests
-- `doc/`: Documentation
+- `docs/`: Documentation
 
 ## Pull Request Process
 

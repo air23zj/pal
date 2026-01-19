@@ -2,7 +2,7 @@
 
 import { BriefBundle } from '@/types/brief'
 import { useState, useCallback } from 'react'
-import { getLatestBrief, triggerBriefRun } from '@/lib/api'
+import { getLatestBrief, triggerBriefRun, getRunStatus } from '@/lib/api'
 import Header from './Header'
 import ModuleCard from './ModuleCard'
 
@@ -40,11 +40,24 @@ export default function Dashboard({ brief }: DashboardProps) {
     setError(null)
 
     try {
-      // Trigger a new brief run
-      await triggerBriefRun()
+      // Trigger a new brief run (real run)
+      const { run_id } = await triggerBriefRun(true)
 
-      // Wait a moment for processing, then fetch latest
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Poll for completion (max 60 seconds)
+      const startTime = Date.now()
+      let status = 'queued'
+
+      while ((status === 'queued' || status === 'running') && (Date.now() - startTime < 60000)) {
+        // Wait 2 seconds between polls
+        await new Promise(resolve => setTimeout(resolve, 2000))
+
+        const runInfo = await getRunStatus(run_id)
+        status = runInfo.status
+
+        if (status === 'error') {
+          throw new Error('Brief generation failed on server')
+        }
+      }
 
       const newBrief = await getLatestBrief()
       setCurrentBrief(newBrief)

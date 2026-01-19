@@ -372,7 +372,7 @@ print(f'Generated {brief.brief_id}')
 ## Resources
 
 - **Repo:** `/Users/jianzhang/agi/pal/`
-- **Docs:** `doc/implementation_spec.md`, `doc/arch.md`
+- **Docs:** `docs/architecture/implementation_spec.md`, `docs/architecture/arch.md`
 - **Status:** `IMPLEMENTATION_STATUS.md`
 - **Setup:** `QUICKSTART.md`, `MCP_CONNECTOR_SETUP.md`, `DATABASE_SETUP.md`
 

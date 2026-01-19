@@ -2,7 +2,7 @@
 Morning Brief AGI - Core Data Schemas
 These schemas define the contract between backend and frontend.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Dict, Any, Optional, Literal
 from datetime import datetime
 
@@ -22,6 +22,8 @@ class NoveltyInfo(BaseModel):
     label: Literal["NEW", "UPDATED", "REPEAT", "LOW_SIGNAL"]
     reason: str = Field(..., description="Why this novelty label was assigned")
     first_seen_utc: str = Field(..., description="ISO timestamp when first seen")
+    last_updated_utc: Optional[str] = Field(default=None, description="ISO timestamp when last updated")
+    seen_count: int = Field(default=0, description="How many times this item has been seen")
 
 
 class RankingScores(BaseModel):
@@ -29,6 +31,7 @@ class RankingScores(BaseModel):
     relevance_score: float = Field(..., ge=0.0, le=1.0)
     urgency_score: float = Field(..., ge=0.0, le=1.0)
     credibility_score: float = Field(..., ge=0.0, le=1.0)
+    impact_score: float = Field(..., ge=0.0, le=1.0)
     actionability_score: float = Field(..., ge=0.0, le=1.0)
     final_score: float = Field(..., ge=0.0, le=1.0)
 
@@ -57,6 +60,8 @@ class BriefItem(BaseModel):
     source: str = Field(..., description="Source: arxiv, gmail, x, linkedin, etc.")
     type: str = Field(..., description="Type: paper, email, post, event, etc.")
     timestamp_utc: str = Field(..., description="ISO timestamp")
+    source_id: Optional[str] = Field(default=None, description="Original source ID")
+    url: Optional[str] = Field(default=None, description="Direct URL to item")
     
     title: str
     summary: str
@@ -139,8 +144,8 @@ class BriefBundle(BaseModel):
         description="Run statistics and metadata"
     )
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "brief_id": "brief_2026-01-18T06:03:00-08:00",
                 "user_id": "u_123",
@@ -169,3 +174,4 @@ class BriefBundle(BaseModel):
                 }
             }
         }
+    )

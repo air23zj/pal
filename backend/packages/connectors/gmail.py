@@ -7,6 +7,9 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 import base64
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -45,7 +48,7 @@ class GmailConnector(BaseConnector):
             try:
                 creds = Credentials.from_authorized_user_file(token_path, SCOPES)
             except Exception as e:
-                print(f"Error loading credentials: {e}")
+                logger.warning(f"Error loading credentials: {e}")
         
         # Refresh or get new credentials
         if not creds or not creds.valid:
@@ -53,7 +56,7 @@ class GmailConnector(BaseConnector):
                 try:
                     creds.refresh(Request())
                 except Exception as e:
-                    print(f"Error refreshing credentials: {e}")
+                    logger.warning(f"Error refreshing credentials: {e}")
                     creds = None
             
             if not creds and os.path.exists(creds_path):
@@ -61,7 +64,7 @@ class GmailConnector(BaseConnector):
                     flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
                     creds = flow.run_local_server(port=0)
                 except Exception as e:
-                    print(f"Error in OAuth flow: {e}")
+                    logger.error(f"Error in OAuth flow: {e}")
                     return False
             
             # Save credentials for next run
@@ -70,10 +73,10 @@ class GmailConnector(BaseConnector):
                     with open(token_path, 'w') as token:
                         token.write(creds.to_json())
                 except Exception as e:
-                    print(f"Error saving credentials: {e}")
+                    logger.error(f"Error saving credentials: {e}")
         
         if not creds:
-            print("No valid credentials available")
+            logger.warning("No valid credentials available")
             return False
         
         try:
@@ -82,7 +85,7 @@ class GmailConnector(BaseConnector):
             self._service.users().getProfile(userId='me').execute()
             return True
         except HttpError as error:
-            print(f"Gmail API error: {error}")
+            logger.error(f"Gmail API error: {error}")
             return False
     
     async def fetch(
@@ -157,7 +160,7 @@ class GmailConnector(BaseConnector):
                         items.append(normalized)
                         
                 except HttpError as e:
-                    print(f"Error fetching message {msg['id']}: {e}")
+                    logger.warning(f"Error fetching message {msg['id']}: {e}")
                     continue
             
             return ConnectorResult(
@@ -211,7 +214,7 @@ class GmailConnector(BaseConnector):
                 "url": f"https://mail.google.com/mail/u/0/#inbox/{message['id']}",
             }
         except Exception as e:
-            print(f"Error normalizing message: {e}")
+            logger.warning(f"Error normalizing message: {e}")
             return None
     
     def _get_message_body(self, payload: Dict[str, Any]) -> str:

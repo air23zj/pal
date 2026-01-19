@@ -4,7 +4,7 @@
 - `backend/`: FastAPI service (apps in `backend/apps/api`, shared logic in `backend/packages`, migrations in `backend/migrations`).
 - `frontend/`: Next.js 14 app (source in `frontend/src`).
 - `tests/`: Pytest suite for backend and integration coverage.
-- `doc/`: Architecture and product documentation.
+- `docs/`: Architecture and product documentation.
 - `scripts/`: Local setup helpers.
 
 ## Build, Test, and Development Commands

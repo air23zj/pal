@@ -10,7 +10,10 @@ from datetime import datetime, timezone
 import re
 import asyncio
 
+import logging
 from .base import BrowserAgent
+
+logger = logging.getLogger(__name__)
 
 
 class LinkedInAgent(BrowserAgent):
@@ -58,7 +61,7 @@ class LinkedInAgent(BrowserAgent):
             return True
             
         except Exception as e:
-            print(f"LinkedIn login failed: {e}")
+            logger.error(f"LinkedIn login failed: {e}")
             return False
     
     async def fetch_feed(
@@ -105,7 +108,7 @@ class LinkedInAgent(BrowserAgent):
                             seen_ids.add(post['id'])
                             posts.append(post)
                     except Exception as e:
-                        print(f"Error extracting post from feed: {e}")
+                        logger.warning(f"Error extracting post from feed: {e}")
                         continue
                 
                 if len(posts) >= limit:
@@ -118,7 +121,7 @@ class LinkedInAgent(BrowserAgent):
             return posts[:limit]
             
         except Exception as e:
-            print(f"Error fetching LinkedIn feed: {e}")
+            logger.error(f"Error fetching LinkedIn feed: {e}")
             return []
     
     async def fetch_user_posts(
@@ -164,7 +167,7 @@ class LinkedInAgent(BrowserAgent):
                             seen_ids.add(post['id'])
                             posts.append(post)
                     except Exception as e:
-                        print(f"Error extracting post from user profile: {e}")
+                        logger.warning(f"Error extracting post from user profile: {e}")
                         continue
                 
                 if len(posts) >= limit:
@@ -176,7 +179,7 @@ class LinkedInAgent(BrowserAgent):
             return posts[:limit]
             
         except Exception as e:
-            print(f"Error fetching posts from {username}: {e}")
+            logger.error(f"Error fetching posts from {username}: {e}")
             return []
     
     async def _extract_post_from_element(self, element) -> Optional[Dict[str, Any]]:
@@ -250,7 +253,7 @@ class LinkedInAgent(BrowserAgent):
                     shares_text = await shares_element.inner_text()
                     metrics['shares'] = self._parse_metric(shares_text)
             except Exception as e:
-                print(f"Error extracting metrics: {e}")
+                logger.warning(f"Error extracting metrics: {e}")
                 pass
             
             # Extract timestamp
@@ -263,7 +266,7 @@ class LinkedInAgent(BrowserAgent):
                     try:
                         timestamp = datetime.fromisoformat(datetime_attr.replace('Z', '+00:00'))
                     except Exception as e:
-                        print(f"Error parsing timestamp: {e}")
+                        logger.warning(f"Error parsing timestamp: {e}")
                         pass
             
             return self._format_post(
@@ -276,7 +279,7 @@ class LinkedInAgent(BrowserAgent):
             )
             
         except Exception as e:
-            print(f"Error extracting LinkedIn post: {e}")
+            logger.error(f"Error extracting LinkedIn post: {e}")
             return None
     
     def _parse_metric(self, text: str) -> int:

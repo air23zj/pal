@@ -2,12 +2,25 @@
 Database models for Morning Brief AGI
 Based on implementation_spec.md Section 11
 """
-from sqlalchemy import Column, String, Integer, Float, DateTime, ForeignKey, JSON, Text, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    Float,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    JSON,
+    Text,
+    Boolean,
+)
+from sqlalchemy.orm import relationship, DeclarativeBase
 from datetime import datetime, timezone
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    """Base class for all models"""
+    pass
+
 
 
 class User(Base):
@@ -64,8 +77,8 @@ class Item(Base):
     """Content items (emails, posts, papers, etc.)"""
     __tablename__ = "items"
     
-    id = Column(String, primary_key=True)  # Stable hash
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(String, primary_key=True)  # Stable hash per user
+    user_id = Column(String, ForeignKey("users.id"), primary_key=True, index=True)
     source = Column(String, nullable=False, index=True)  # arxiv, gmail, x, linkedin, etc.
     type = Column(String, nullable=False, index=True)  # paper, email, post, event, etc.
     source_id = Column(String, nullable=True, index=True)  # Original ID from source
@@ -85,9 +98,15 @@ class Item(Base):
 class ItemState(Base):
     """User-specific item state tracking"""
     __tablename__ = "item_states"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "item_id"],
+            ["items.user_id", "items.id"],
+        ),
+    )
     
     user_id = Column(String, ForeignKey("users.id"), primary_key=True)
-    item_id = Column(String, ForeignKey("items.id"), primary_key=True)
+    item_id = Column(String, primary_key=True)
     state = Column(String, nullable=False)  # new|updated|seen|ignored|saved
     first_seen_utc = Column(DateTime, nullable=False)
     last_seen_utc = Column(DateTime, nullable=False)
@@ -103,10 +122,16 @@ class ItemState(Base):
 class FeedbackEvent(Base):
     """User feedback events"""
     __tablename__ = "feedback_events"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["user_id", "item_id"],
+            ["items.user_id", "items.id"],
+        ),
+    )
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
-    item_id = Column(String, ForeignKey("items.id"), nullable=False, index=True)
+    item_id = Column(String, nullable=False, index=True)
     event_type = Column(String, nullable=False)  # thumb_up|thumb_down|dismiss|less_like_this|mark_seen|save|open
     created_at_utc = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     payload_json = Column(JSON, default=dict)

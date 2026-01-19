@@ -28,7 +28,7 @@ def create_sample_items() -> list[BriefItem]:
             why_it_matters="pending",
             entities=[Entity(kind="person", key="ceo@company.com")],
             novelty=NoveltyInfo(label="NEW", reason="test", first_seen_utc=now.isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[],
         ),
@@ -44,7 +44,7 @@ def create_sample_items() -> list[BriefItem]:
             why_it_matters="pending",
             entities=[],
             novelty=NoveltyInfo(label="NEW", reason="test", first_seen_utc=now.isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[],
         ),
@@ -60,7 +60,7 @@ def create_sample_items() -> list[BriefItem]:
             why_it_matters="pending",
             entities=[Entity(kind="person", key="boss@company.com")],
             novelty=NoveltyInfo(label="NEW", reason="test", first_seen_utc=now.isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[],
         ),
@@ -76,7 +76,7 @@ def create_sample_items() -> list[BriefItem]:
             why_it_matters="pending",
             entities=[],
             novelty=NoveltyInfo(label="NEW", reason="test", first_seen_utc=now.isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[],
         ),
@@ -133,6 +133,7 @@ def main():
         print(f"   Relevance: {item.ranking.relevance_score:.2f}")
         print(f"   Urgency: {item.ranking.urgency_score:.2f}")
         print(f"   Credibility: {item.ranking.credibility_score:.2f}")
+        print(f"   Impact: {item.ranking.impact_score:.2f}")
         print(f"   Actionability: {item.ranking.actionability_score:.2f}")
         print()
     

@@ -10,7 +10,10 @@ from datetime import datetime, timezone
 import re
 import asyncio
 
+import logging
 from .base import BrowserAgent
+
+logger = logging.getLogger(__name__)
 
 
 class TwitterAgent(BrowserAgent):
@@ -62,7 +65,7 @@ class TwitterAgent(BrowserAgent):
             return True
             
         except Exception as e:
-            print(f"X login failed: {e}")
+            logger.error(f"X login failed: {e}")
             return False
     
     async def fetch_feed(
@@ -110,7 +113,7 @@ class TwitterAgent(BrowserAgent):
                             seen_ids.add(post['id'])
                             posts.append(post)
                     except Exception as e:
-                        print(f"Error extracting tweet from timeline: {e}")
+                        logger.warning(f"Error extracting tweet from timeline: {e}")
                         continue
                 
                 if len(posts) >= limit:
@@ -123,7 +126,7 @@ class TwitterAgent(BrowserAgent):
             return posts[:limit]
             
         except Exception as e:
-            print(f"Error fetching X feed: {e}")
+            logger.error(f"Error fetching X feed: {e}")
             return []
     
     async def fetch_user_posts(
@@ -170,7 +173,7 @@ class TwitterAgent(BrowserAgent):
                             seen_ids.add(post['id'])
                             posts.append(post)
                     except Exception as e:
-                        print(f"Error extracting tweet from user profile: {e}")
+                        logger.warning(f"Error extracting tweet from user profile: {e}")
                         continue
                 
                 if len(posts) >= limit:
@@ -182,7 +185,7 @@ class TwitterAgent(BrowserAgent):
             return posts[:limit]
             
         except Exception as e:
-            print(f"Error fetching posts from @{username}: {e}")
+            logger.error(f"Error fetching posts from @{username}: {e}")
             return []
     
     async def _extract_post_from_element(self, element) -> Optional[Dict[str, Any]]:
@@ -252,20 +255,31 @@ class TwitterAgent(BrowserAgent):
                     like_text = await like_button.inner_text()
                     metrics['likes'] = self._parse_metric(like_text)
             except Exception as e:
-                print(f"Error extracting engagement metrics: {e}")
+                logger.warning(f"Error extracting engagement metrics: {e}")
                 pass
+            
+            # Extract timestamp
+            timestamp = datetime.now(timezone.utc)
+            try:
+                time_element = await element.query_selector('time')
+                if time_element:
+                    dt_str = await time_element.get_attribute('datetime')
+                    if dt_str:
+                        timestamp = datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
+            except Exception as e:
+                logger.warning(f"Error extracting timestamp: {e}")
             
             return self._format_post(
                 post_id=post_id,
                 author=author_handle,
                 content=content,
-                timestamp=datetime.now(timezone.utc),  # TODO: Parse actual timestamp
+                timestamp=timestamp,
                 url=post_url,
                 metrics=metrics,
             )
             
         except Exception as e:
-            print(f"Error extracting post: {e}")
+            logger.error(f"Error extracting post: {e}")
             return None
     
     def _parse_metric(self, text: str) -> int:

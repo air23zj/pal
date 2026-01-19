@@ -3,6 +3,7 @@ Comprehensive tests for Database module - Target 90%+ coverage
 """
 import pytest
 from datetime import datetime, timezone, timedelta
+from unittest.mock import Mock, patch
 from packages.database import crud
 from packages.database.models import User, BriefRun, BriefBundle, Item, ItemState, FeedbackEvent
 from packages.shared.schemas import BriefItem, NoveltyInfo, RankingScores, ModuleResult, BriefBundle as BriefBundleSchema
@@ -32,6 +33,25 @@ class TestUserCRUD:
         # Verify update
         updated_user = crud.get_or_create_user(db_session, user.id)
         assert updated_user.last_brief_timestamp_utc is not None
+
+    def test_get_or_create_user_integrity_error(self, db_session):
+        """Test handling of IntegrityError (race condition)"""
+        from sqlalchemy.exc import IntegrityError
+        user_id = 'race_user'
+        
+        # Mocking the first check to fail (return None) and then IntegrityError occurs during add/commit
+        # We need to mock Session.scalar to return None first, then the user on second call
+        with patch.object(db_session, "scalar", side_effect=[None, Mock(id=user_id)]):
+            with patch.object(db_session, "add", side_effect=IntegrityError(None, None, None)):
+                user = crud.get_or_create_user(db_session, user_id)
+                assert user.id == user_id
+
+    def test_parse_iso_timestamp_z(self):
+        """Test parsing ISO timestamp with Z suffix"""
+        ts = "2024-01-15T10:00:00Z"
+        dt = crud.parse_iso_timestamp(ts)
+        assert dt.tzinfo == timezone.utc
+        assert dt.hour == 10
 
 
 class TestBriefRunCRUD:
@@ -74,6 +94,26 @@ class TestBriefRunCRUD:
         
         retrieved = crud.get_brief_run(db_session, run.id)
         assert retrieved.id == run.id
+
+    def test_update_brief_run_status_all_fields(self, db_session):
+        """Test update_brief_run_status with all optional fields"""
+        user = crud.get_or_create_user(db_session, 'run_user_4')
+        run = crud.create_brief_run(db_session, user.id, datetime.now(timezone.utc))
+        
+        crud.update_brief_run_status(
+            db_session, 
+            run.id, 
+            'error', 
+            latency_ms=100, 
+            cost_usd=0.01, 
+            warnings=["Warn"]
+        )
+        
+        updated = crud.get_brief_run(db_session, run.id)
+        assert updated.status == 'error'
+        assert updated.latency_ms == 100
+        assert updated.cost_estimate_usd == 0.01
+        assert updated.warnings_json == ["Warn"]
 
 
 class TestBriefBundleCRUD:
@@ -157,9 +197,9 @@ class TestBriefBundleCRUD:
         crud.create_brief_bundle(db_session, bundle_schema)
         
         # Query with wider range to ensure we catch it
-        start = now - timedelta(days=1)
-        end = now + timedelta(days=1)
-        briefs = crud.get_briefs_by_date_range(db_session, user.id, start, end)
+        start_str = (now - timedelta(days=1)).strftime('%Y-%m-%d')
+        end_str = (now + timedelta(days=1)).strftime('%Y-%m-%d')
+        briefs = crud.get_briefs_by_date_range(db_session, user.id, start_str, end_str)
         
         # If no briefs found, at least verify the bundle was created
         assert len(briefs) >= 0  # Changed assertion to be more lenient
@@ -224,7 +264,7 @@ class TestItemCRUD:
             title='Test'
         )
         
-        retrieved = crud.get_item(db_session, created.id)
+        retrieved = crud.get_item(db_session, user.id, created.id)
         assert retrieved.id == created.id
 
 
@@ -280,6 +320,27 @@ class TestItemStateCRUD:
         retrieved = crud.get_item_state(db_session, user.id, created.item_id)
         assert retrieved.item_id == created.item_id
 
+    def test_create_or_update_item_state_opened_feedback(self, db_session):
+        """Test updating item state with opened=True and feedback_score"""
+        user = crud.get_or_create_user(db_session, 'state_user_4')
+        item_id = 'feedback_item'
+        
+        # First creation
+        crud.create_or_update_item_state(db_session, user.id, item_id, state='new')
+        
+        # Update
+        crud.create_or_update_item_state(
+            db_session, 
+            user.id, 
+            item_id, 
+            opened=True, 
+            feedback_score=0.8
+        )
+        
+        state = crud.get_item_state(db_session, user.id, item_id)
+        assert state.opened_count == 1
+        assert state.feedback_score == 0.8
+
 
 class TestFeedbackEventCRUD:
     """Test FeedbackEvent CRUD operations"""
@@ -332,3 +393,28 @@ class TestFeedbackEventCRUD:
         
         events = crud.get_feedback_events(db_session, user.id, limit=3)
         assert len(events) == 3
+
+    def test_create_feedback_event_special_types(self, db_session):
+        """Test feedback events that trigger state updates"""
+        user = crud.get_or_create_user(db_session, 'feedback_user_5')
+        item_id = 'special_item'
+        
+        # Test mark_seen
+        crud.create_feedback_event(db_session, user.id, item_id, 'mark_seen')
+        assert crud.get_item_state(db_session, user.id, item_id).state == 'seen'
+        
+        # Test save
+        crud.create_feedback_event(db_session, user.id, item_id, 'save')
+        assert crud.get_item_state(db_session, user.id, item_id).saved_bool is True
+        
+        # Test open
+        crud.create_feedback_event(db_session, user.id, item_id, 'open')
+        assert crud.get_item_state(db_session, user.id, item_id).opened_count >= 1
+        
+        # Test thumb_up
+        crud.create_feedback_event(db_session, user.id, item_id, 'thumb_up')
+        assert crud.get_item_state(db_session, user.id, item_id).feedback_score == 1.0
+        
+        # Test thumb_down
+        crud.create_feedback_event(db_session, user.id, item_id, 'thumb_down')
+        assert crud.get_item_state(db_session, user.id, item_id).feedback_score == -1.0

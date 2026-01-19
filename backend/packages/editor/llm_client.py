@@ -6,6 +6,9 @@ import os
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any, List
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class LLMClient(ABC):
@@ -275,13 +278,13 @@ def get_llm_client(
             return client
     
     # Auto-detect available provider
-    print(f"Provider '{provider}' not available or not specified, trying auto-detect...")
+    logger.info(f"Provider '{provider}' not available or not specified, trying auto-detect...")
     
     # Try Ollama (local, no API key needed)
     try:
         client = OllamaClient(model=model)
         if client.is_available():
-            print("✅ Using Ollama (local)")
+            logger.info("✅ Using Ollama (local)")
             return client
     except Exception:
         pass
@@ -290,7 +293,7 @@ def get_llm_client(
     try:
         client = ClaudeClient(model=model)
         if client.is_available():
-            print("✅ Using Claude API")
+            logger.info("✅ Using Claude API")
             return client
     except Exception:
         pass
@@ -299,7 +302,7 @@ def get_llm_client(
     try:
         client = OpenAIClient(model=model)
         if client.is_available():
-            print("✅ Using OpenAI API")
+            logger.info("✅ Using OpenAI API")
             return client
     except Exception:
         pass

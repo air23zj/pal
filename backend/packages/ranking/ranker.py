@@ -99,6 +99,7 @@ class Ranker:
             relevance_score=relevance,
             urgency_score=urgency,
             credibility_score=credibility,
+            impact_score=impact,
             actionability_score=actionability,
             final_score=final_score,
         )

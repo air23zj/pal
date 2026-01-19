@@ -1,6 +1,7 @@
 """
 CRUD operations for database models
 """
+from sqlalchemy import select, update, delete
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone
@@ -41,7 +42,7 @@ def get_or_create_user(db: Session, user_id: str, timezone: str = "UTC") -> User
 
     Handles race conditions by catching IntegrityError and retrying.
     """
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.scalar(select(User).where(User.id == user_id))
     if not user:
         try:
             user = User(
@@ -56,7 +57,7 @@ def get_or_create_user(db: Session, user_id: str, timezone: str = "UTC") -> User
         except IntegrityError:
             # Race condition: another request created the user
             db.rollback()
-            user = db.query(User).filter(User.id == user_id).first()
+            user = db.scalar(select(User).where(User.id == user_id))
             if not user:
                 # Should not happen, but handle gracefully
                 logger.error(f"Failed to get or create user: {user_id}")
@@ -66,9 +67,11 @@ def get_or_create_user(db: Session, user_id: str, timezone: str = "UTC") -> User
 
 def update_user_last_brief_timestamp(db: Session, user_id: str, timestamp: datetime) -> None:
     """Update user's last brief timestamp"""
-    db.query(User).filter(User.id == user_id).update({
-        "last_brief_timestamp_utc": timestamp
-    })
+    db.execute(
+        update(User)
+        .where(User.id == user_id)
+        .values(last_brief_timestamp_utc=timestamp)
+    )
     db.commit()
 
 
@@ -99,17 +102,16 @@ def create_brief_bundle(db: Session, bundle: BriefBundleSchema) -> BriefBundle:
 
 def get_latest_brief(db: Session, user_id: str) -> Optional[BriefBundle]:
     """Get the most recent brief for a user"""
-    return (
-        db.query(BriefBundle)
-        .filter(BriefBundle.user_id == user_id)
+    return db.scalar(
+        select(BriefBundle)
+        .where(BriefBundle.user_id == user_id)
         .order_by(BriefBundle.generated_at_utc.desc())
-        .first()
     )
 
 
 def get_brief_by_id(db: Session, brief_id: str) -> Optional[BriefBundle]:
     """Get a specific brief by ID"""
-    return db.query(BriefBundle).filter(BriefBundle.id == brief_id).first()
+    return db.scalar(select(BriefBundle).where(BriefBundle.id == brief_id))
 
 
 def get_briefs_by_date_range(
@@ -119,15 +121,16 @@ def get_briefs_by_date_range(
     end_date: str
 ) -> List[BriefBundle]:
     """Get briefs within a date range"""
-    return (
-        db.query(BriefBundle)
-        .filter(
-            BriefBundle.user_id == user_id,
-            BriefBundle.brief_date_local >= start_date,
-            BriefBundle.brief_date_local <= end_date,
-        )
-        .order_by(BriefBundle.generated_at_utc.desc())
-        .all()
+    return list(
+        db.scalars(
+            select(BriefBundle)
+            .where(
+                BriefBundle.user_id == user_id,
+                BriefBundle.brief_date_local >= start_date,
+                BriefBundle.brief_date_local <= end_date,
+            )
+            .order_by(BriefBundle.generated_at_utc.desc())
+        ).all()
     )
 
 
@@ -171,13 +174,17 @@ def update_brief_run_status(
     if warnings is not None:
         update_data["warnings_json"] = warnings
     
-    db.query(BriefRun).filter(BriefRun.id == run_id).update(update_data)
+    db.execute(
+        update(BriefRun)
+        .where(BriefRun.id == run_id)
+        .values(**update_data)
+    )
     db.commit()
 
 
 def get_brief_run(db: Session, run_id: int) -> Optional[BriefRun]:
     """Get a brief run by ID"""
-    return db.query(BriefRun).filter(BriefRun.id == run_id).first()
+    return db.get(BriefRun, run_id)
 
 
 # ============================================================================
@@ -198,7 +205,7 @@ def create_or_update_item(
     url: Optional[str] = None,
 ) -> Item:
     """Create or update an item"""
-    item = db.query(Item).filter(Item.id == item_id).first()
+    item = db.get(Item, (item_id, user_id))
     
     if item:
         # Update existing
@@ -228,9 +235,9 @@ def create_or_update_item(
     return item
 
 
-def get_item(db: Session, item_id: str) -> Optional[Item]:
-    """Get an item by ID"""
-    return db.query(Item).filter(Item.id == item_id).first()
+def get_item(db: Session, user_id: str, item_id: str) -> Optional[Item]:
+    """Get an item by ID for a specific user"""
+    return db.get(Item, (item_id, user_id))
 
 
 # ============================================================================
@@ -248,11 +255,7 @@ def create_or_update_item_state(
 ) -> ItemState:
     """Create or update item state"""
     now = datetime.now(timezone.utc)
-    item_state = (
-        db.query(ItemState)
-        .filter(ItemState.user_id == user_id, ItemState.item_id == item_id)
-        .first()
-    )
+    item_state = db.get(ItemState, (user_id, item_id))
     
     if item_state:
         # Update existing
@@ -285,11 +288,7 @@ def create_or_update_item_state(
 
 def get_item_state(db: Session, user_id: str, item_id: str) -> Optional[ItemState]:
     """Get item state"""
-    return (
-        db.query(ItemState)
-        .filter(ItemState.user_id == user_id, ItemState.item_id == item_id)
-        .first()
-    )
+    return db.get(ItemState, (user_id, item_id))
 
 
 # ============================================================================
@@ -335,10 +334,11 @@ def get_feedback_events(
     limit: int = 100
 ) -> List[FeedbackEvent]:
     """Get recent feedback events for a user"""
-    return (
-        db.query(FeedbackEvent)
-        .filter(FeedbackEvent.user_id == user_id)
-        .order_by(FeedbackEvent.created_at_utc.desc())
-        .limit(limit)
-        .all()
+    return list(
+        db.scalars(
+            select(FeedbackEvent)
+            .where(FeedbackEvent.user_id == user_id)
+            .order_by(FeedbackEvent.created_at_utc.desc())
+            .limit(limit)
+        ).all()
     )

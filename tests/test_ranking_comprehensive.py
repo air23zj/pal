@@ -31,6 +31,7 @@ def sample_items():
                 relevance_score=0.5,
                 urgency_score=0.5,
                 credibility_score=0.5,
+                impact_score=0.5,
                 actionability_score=0.5,
                 final_score=0.5
             ),
@@ -267,7 +268,7 @@ class TestRankingScenarios:
             why_it_matters='Test',
             entities=[],
             novelty=NoveltyInfo(label='NEW', reason='Test', first_seen_utc=datetime.now(timezone.utc).isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[]
         )
@@ -282,7 +283,7 @@ class TestRankingScenarios:
             why_it_matters='Test',
             entities=[],
             novelty=NoveltyInfo(label='REPEAT', reason='Test', first_seen_utc=datetime.now(timezone.utc).isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[]
         )
@@ -305,7 +306,7 @@ class TestRankingScenarios:
             why_it_matters='Test',
             entities=[],
             novelty=NoveltyInfo(label='NEW', reason='Test', first_seen_utc=datetime.now(timezone.utc).isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[]
         )
@@ -320,7 +321,7 @@ class TestRankingScenarios:
             why_it_matters='Test',
             entities=[],
             novelty=NoveltyInfo(label='REPEAT', reason='Test', first_seen_utc=datetime.now(timezone.utc).isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[]
         )
@@ -347,7 +348,7 @@ class TestRankingScenarios:
             why_it_matters='Test',
             entities=[Entity(kind='topic', key='AI')],
             novelty=NoveltyInfo(label='NEW', reason='Test', first_seen_utc=datetime.now(timezone.utc).isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[]
         )
@@ -362,7 +363,7 @@ class TestRankingScenarios:
             why_it_matters='Test',
             entities=[],
             novelty=NoveltyInfo(label='NEW', reason='Test', first_seen_utc=datetime.now(timezone.utc).isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[]
         )

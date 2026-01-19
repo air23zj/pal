@@ -5,6 +5,9 @@ Fetches calendar events via Google Calendar API
 import os
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
@@ -43,7 +46,7 @@ class CalendarConnector(BaseConnector):
             try:
                 creds = Credentials.from_authorized_user_file(token_path, SCOPES)
             except Exception as e:
-                print(f"Error loading credentials: {e}")
+                logger.warning(f"Error loading credentials: {e}")
         
         # Refresh or get new credentials
         if not creds or not creds.valid:
@@ -51,7 +54,7 @@ class CalendarConnector(BaseConnector):
                 try:
                     creds.refresh(Request())
                 except Exception as e:
-                    print(f"Error refreshing credentials: {e}")
+                    logger.warning(f"Error refreshing credentials: {e}")
                     creds = None
             
             if not creds and os.path.exists(creds_path):
@@ -59,7 +62,7 @@ class CalendarConnector(BaseConnector):
                     flow = InstalledAppFlow.from_client_secrets_file(creds_path, SCOPES)
                     creds = flow.run_local_server(port=0)
                 except Exception as e:
-                    print(f"Error in OAuth flow: {e}")
+                    logger.error(f"Error in OAuth flow: {e}")
                     return False
             
             # Save credentials for next run
@@ -68,10 +71,10 @@ class CalendarConnector(BaseConnector):
                     with open(token_path, 'w') as token:
                         token.write(creds.to_json())
                 except Exception as e:
-                    print(f"Error saving credentials: {e}")
+                    logger.error(f"Error saving credentials: {e}")
         
         if not creds:
-            print("No valid credentials available")
+            logger.warning("No valid credentials available")
             return False
         
         try:
@@ -80,7 +83,7 @@ class CalendarConnector(BaseConnector):
             self._service.calendarList().list(maxResults=1).execute()
             return True
         except HttpError as error:
-            print(f"Calendar API error: {error}")
+            logger.error(f"Calendar API error: {error}")
             return False
     
     async def fetch(
@@ -217,7 +220,7 @@ class CalendarConnector(BaseConnector):
                 "reminder_minutes": self._get_reminder_minutes(event.get('reminders', {})),
             }
         except Exception as e:
-            print(f"Error normalizing event: {e}")
+            logger.warning(f"Error normalizing event: {e}")
             return None
     
     def _extract_meeting_link(self, description: str) -> Optional[str]:

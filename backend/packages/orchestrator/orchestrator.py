@@ -12,7 +12,10 @@ Coordinates all components to generate a complete brief:
 from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime, timezone, timedelta
 import asyncio
+import logging
 from enum import Enum
+
+logger = logging.getLogger(__name__)
 
 from packages.shared.schemas import BriefBundle, ModuleResult, BriefItem
 from packages.memory import MemoryManager, NoveltyDetector, detect_novelty_for_items
@@ -73,7 +76,7 @@ class BriefOrchestrator:
             try:
                 self.progress_callback(stage, progress, message)
             except Exception as e:
-                print(f"Progress callback error: {e}")
+                logger.error(f"Progress callback error: {e}")
     
     async def generate_brief(
         self,
@@ -160,48 +163,67 @@ class BriefOrchestrator:
         since: datetime,
     ) -> Dict[str, Any]:
         """
-        Fetch data from all requested modules.
+        Fetch data from all requested modules in parallel.
         
         Returns dict mapping module name to raw data.
         """
-        results = {}
+        tasks = []
+        module_names = []
         
         for module in modules:
-            try:
-                if module == "gmail":
-                    # Import here to avoid dependency issues
-                    from packages.connectors.gmail import GmailConnector
-                    connector = GmailConnector()
-                    data = connector.fetch_messages(since=since)
-                    results["gmail"] = data
-                    
-                elif module == "calendar":
-                    from packages.connectors.calendar import CalendarConnector
-                    connector = CalendarConnector()
-                    data = connector.fetch_events(since=since)
-                    results["calendar"] = data
-                    
-                elif module == "tasks":
-                    from packages.connectors.tasks import TasksConnector
-                    connector = TasksConnector()
-                    data = connector.fetch_tasks()
-                    results["tasks"] = data
-                    
-                elif module == "twitter":
-                    # Social agents require special handling
-                    self.warnings.append(f"Twitter agent requires manual setup")
-                    results["twitter"] = []
-                    
-                elif module == "linkedin":
-                    self.warnings.append(f"LinkedIn agent requires manual setup")
-                    results["linkedin"] = []
-                    
-                else:
-                    self.warnings.append(f"Unknown module: {module}")
-                    
-            except Exception as e:
-                self.errors.append(f"{module}: {str(e)}")
-                results[module] = []  # Continue with empty results
+            if module == "gmail":
+                from packages.connectors.gmail import GmailConnector
+                tasks.append(GmailConnector().fetch(since=since))
+                module_names.append("gmail")
+                
+            elif module == "calendar":
+                from packages.connectors.calendar import CalendarConnector
+                tasks.append(CalendarConnector().fetch(since=since))
+                module_names.append("calendar")
+                
+            elif module == "tasks":
+                from packages.connectors.tasks import TasksConnector
+                tasks.append(TasksConnector().fetch(since=since))
+                module_names.append("tasks")
+                
+            elif module == "twitter":
+                self.warnings.append("Twitter integration is using experimental BrowserAgent setup")
+                from packages.agents.twitter_agent import TwitterAgent
+                async def fetch_twitter():
+                    agent = TwitterAgent()
+                    async with agent:
+                        return await agent.fetch_feed()
+                tasks.append(fetch_twitter())
+                module_names.append("twitter")
+
+            elif module == "linkedin":
+                self.warnings.append("LinkedIn integration is using experimental BrowserAgent setup")
+                from packages.agents.linkedin_agent import LinkedInAgent
+                async def fetch_linkedin():
+                    agent = LinkedInAgent()
+                    async with agent:
+                        return await agent.fetch_feed()
+                tasks.append(fetch_linkedin())
+                module_names.append("linkedin")
+                
+            else:
+                self.warnings.append(f"Unknown module: {module}")
+        
+        results = {}
+        if not tasks:
+            return results
+            
+        # Execute all fetches in parallel
+        fetch_results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        for name, result in zip(module_names, fetch_results):
+            if isinstance(result, Exception):
+                self.errors.append(f"{name}: {str(result)}")
+                results[name] = []
+            elif hasattr(result, 'items'):  # ConnectorResult
+                results[name] = result.items
+            else:  # Raw list from agents
+                results[name] = result
         
         return results
     
@@ -330,17 +352,33 @@ class BriefOrchestrator:
             top_items = ranked_items[:20]  # Limit LLM calls
             items_with_why = await self._synthesizer.synthesize_items(top_items)
             
-            # Create module summaries
-            module_summaries = {}
+            # Create module summaries in parallel
+            module_summary_tasks = []
+            module_sources = []
+            
             for source, module_result in module_results.items():
                 if module_result.items:
-                    summary = await self._synthesizer.create_module_summary(
-                        module_name=module_result.module_name,
-                        items=module_result.items,
-                        new_count=module_result.new_count,
-                        updated_count=module_result.updated_count,
+                    module_summary_tasks.append(
+                        self._synthesizer.create_module_summary(
+                            module_name=source,
+                            items=module_result.items,
+                            new_count=module_result.new_count,
+                            updated_count=module_result.updated_count,
+                        )
                     )
-                    module_summaries[source] = summary
+                    module_sources.append(source)
+            
+            if module_summary_tasks:
+                summaries = await asyncio.gather(*module_summary_tasks, return_exceptions=True)
+                module_summaries = {}
+                for source, summary in zip(module_sources, summaries):
+                    if isinstance(summary, Exception):
+                        self.warnings.append(f"Summary failed for {source}: {summary}")
+                        module_summaries[source] = f"Update for {source}"
+                    else:
+                        module_summaries[source] = summary
+            else:
+                module_summaries = {}
             
             # Update items in ranked_items with synthesized versions
             synthesized_by_ref = {item.item_ref: item for item in items_with_why}

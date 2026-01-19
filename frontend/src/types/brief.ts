@@ -16,12 +16,15 @@ export interface NoveltyInfo {
   label: NoveltyLabel
   reason: string
   first_seen_utc: string
+  last_updated_utc?: string
+  seen_count: number
 }
 
 export interface RankingScores {
   relevance_score: number
   urgency_score: number
   credibility_score: number
+  impact_score: number
   actionability_score: number
   final_score: number
 }
@@ -44,15 +47,17 @@ export interface BriefItem {
   source: string
   type: string
   timestamp_utc: string
-  
+  source_id?: string
+  url?: string | null
+
   title: string
   summary: string
   why_it_matters: string
   entities: Entity[]
-  
+
   novelty: NoveltyInfo
   ranking: RankingScores
-  
+
   evidence: Evidence[]
   suggested_actions: SuggestedAction[]
 }
@@ -100,5 +105,5 @@ export interface BriefBundle {
 
   actions: Action[]
   evidence_log: EvidenceLogEntry[]
-  run_metadata: RunMetadata
+  run_metadata?: RunMetadata
 }

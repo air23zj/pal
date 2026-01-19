@@ -4,6 +4,9 @@ Brief synthesizer - uses LLM to generate "why it matters" and summaries
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 
 from packages.shared.schemas import BriefItem, ModuleResult
 from .llm_client import LLMClient, get_llm_client
@@ -73,7 +76,7 @@ class BriefSynthesizer:
             item.why_it_matters = why_it_matters.strip()
             
         except Exception as e:
-            print(f"Error generating 'why it matters': {e}")
+            logger.warning(f"Error generating 'why it matters': {e}")
             # Fallback to default explanation
             item.why_it_matters = self._generate_fallback_why_it_matters(item)
         
@@ -100,7 +103,7 @@ class BriefSynthesizer:
             
             for result in results:
                 if isinstance(result, Exception):
-                    print(f"Error in batch: {result}")
+                    logger.error(f"Error in batch: {result}")
                 else:
                     synthesized.append(result)
             
@@ -164,7 +167,7 @@ class BriefSynthesizer:
             return summary.strip()
             
         except Exception as e:
-            print(f"Error generating module summary: {e}")
+            logger.warning(f"Error generating module summary: {e}")
             # Fallback summary
             return self._generate_fallback_module_summary(
                 module_name, len(items), new_count, urgent_count

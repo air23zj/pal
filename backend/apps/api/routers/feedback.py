@@ -34,7 +34,7 @@ async def record_feedback(
     crud.get_or_create_user(db, user_id=feedback.user_id)
     
     # Check if item exists (optional - may be created later)
-    item = crud.get_item(db, item_id=feedback.item_ref)
+    item = crud.get_item(db, user_id=feedback.user_id, item_id=feedback.item_ref)
     if not item:
         # Create placeholder item (will be updated when brief is generated)
         crud.create_or_update_item(
@@ -75,7 +75,7 @@ async def mark_item_seen(
     crud.get_or_create_user(db, user_id=request.user_id)
     
     # Check if item exists
-    item = crud.get_item(db, item_id=request.item_ref)
+    item = crud.get_item(db, user_id=request.user_id, item_id=request.item_ref)
     if not item:
         # Create placeholder item
         crud.create_or_update_item(

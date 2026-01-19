@@ -106,6 +106,8 @@ class NoveltyDetector:
             label=label.value,
             reason=reason,
             first_seen_utc=first_seen_utc,
+            last_updated_utc=item_mem.last_seen_utc if item_mem else first_seen_utc,
+            seen_count=(item_mem.seen_count + 1) if item_mem else 1,
         )
     
     def detect_novelty_batch(
@@ -181,6 +183,8 @@ class NoveltyDetector:
                 label=label.value,
                 reason=reason,
                 first_seen_utc=first_seen_utc,
+                last_updated_utc=item_mem.last_seen_utc if item_mem else first_seen_utc,
+                seen_count=(item_mem.seen_count + 1) if item_mem else 1,
             ))
         
         # Record all items in memory (single write)

@@ -95,7 +95,7 @@ def create_mock_linkedin_posts() -> list[dict]:
     ]
 
 
-def test_twitter_normalization():
+def run_twitter_normalization_test():
     """Test Twitter post normalization"""
     print("📱 Testing Twitter Post Normalization...\n")
     
@@ -115,10 +115,9 @@ def test_twitter_normalization():
         print(f"  Evidence: {[e.url for e in item.evidence]}")
     
     print(f"\n✅ Successfully normalized {len(items)} Twitter posts\n")
-    return items
 
 
-def test_linkedin_normalization():
+def run_linkedin_normalization_test():
     """Test LinkedIn post normalization"""
     print("💼 Testing LinkedIn Post Normalization...\n")
     
@@ -138,10 +137,9 @@ def test_linkedin_normalization():
         print(f"  Evidence: {[e.url for e in item.evidence]}")
     
     print(f"\n✅ Successfully normalized {len(items)} LinkedIn posts\n")
-    return items
 
 
-def test_novelty_detection():
+def run_novelty_detection_test():
     """Test novelty detection with social posts"""
     print("🔍 Testing Novelty Detection for Social Posts...\n")
     
@@ -187,7 +185,7 @@ def test_novelty_detection():
     print("✅ Novelty detection working for social posts\n")
 
 
-async def test_agent_interface():
+async def run_agent_interface_test():
     """Test agent interface (without real browser)"""
     print("🤖 Testing Agent Interface...\n")
     
@@ -206,7 +204,7 @@ async def test_agent_interface():
     print("✅ Agent interfaces defined correctly\n")
 
 
-def test_integration_flow():
+def run_integration_flow_test():
     """Test full integration flow with mock data"""
     print("🔄 Testing Full Integration Flow...\n")
     
@@ -253,22 +251,22 @@ def main():
     print("=" * 60 + "\n")
     
     # Test normalization
-    test_twitter_normalization()
+    run_twitter_normalization_test()
     print("=" * 60 + "\n")
     
-    test_linkedin_normalization()
+    run_linkedin_normalization_test()
     print("=" * 60 + "\n")
     
     # Test novelty detection
-    test_novelty_detection()
+    run_novelty_detection_test()
     print("=" * 60 + "\n")
     
     # Test agent interface
-    asyncio.run(test_agent_interface())
+    asyncio.run(run_agent_interface_test())
     print("=" * 60 + "\n")
     
     # Test integration
-    test_integration_flow()
+    run_integration_flow_test()
     print("=" * 60 + "\n")
     
     print("🎉 All tests passed!\n")

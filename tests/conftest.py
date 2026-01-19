@@ -91,6 +91,7 @@ def sample_brief_item() -> BriefItem:
             relevance_score=0.8,
             urgency_score=0.6,
             credibility_score=0.9,
+            impact_score=0.7,
             actionability_score=0.7,
             final_score=0.75
         ),
@@ -198,6 +199,7 @@ def sample_brief_items_for_ranking() -> list[BriefItem]:
             relevance_score=0.9,
             urgency_score=1.0,
             credibility_score=0.95,
+            impact_score=0.9,
             actionability_score=0.9,
             final_score=0.0  # Will be calculated
         ),
@@ -220,6 +222,7 @@ def sample_brief_items_for_ranking() -> list[BriefItem]:
             relevance_score=0.6,
             urgency_score=0.5,
             credibility_score=1.0,
+            impact_score=0.5,
             actionability_score=0.3,
             final_score=0.0  # Will be calculated
         ),
@@ -242,6 +245,7 @@ def sample_brief_items_for_ranking() -> list[BriefItem]:
             relevance_score=0.4,
             urgency_score=0.1,
             credibility_score=0.7,
+            impact_score=0.3,
             actionability_score=0.2,
             final_score=0.0  # Will be calculated
         ),

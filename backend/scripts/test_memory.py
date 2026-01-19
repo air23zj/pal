@@ -38,6 +38,7 @@ def create_sample_item(
             relevance_score=0.5,
             urgency_score=0.5,
             credibility_score=0.5,
+            impact_score=0.5,
             actionability_score=0.5,
             final_score=0.5,
         ),

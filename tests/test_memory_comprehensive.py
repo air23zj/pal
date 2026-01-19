@@ -4,6 +4,7 @@ Comprehensive tests for Memory module - Target 90%+ coverage
 import pytest
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import patch, Mock, AsyncMock
 from packages.memory.fingerprint import generate_fingerprint, content_hash
 from packages.memory.novelty import NoveltyDetector, NoveltyLabel
 from packages.memory.memory_manager import MemoryManager
@@ -31,6 +32,7 @@ def sample_brief_item():
             relevance_score=0.5,
             urgency_score=0.5,
             credibility_score=0.5,
+            impact_score=0.5,
             actionability_score=0.5,
             final_score=0.5
         ),
@@ -175,7 +177,7 @@ class TestNoveltyDetector:
             why_it_matters='Test',
             entities=[],
             novelty=NoveltyInfo(label='NEW', reason='Test', first_seen_utc=datetime.now(timezone.utc).isoformat()),
-            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+            ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
             evidence=[],
             suggested_actions=[]
         )
@@ -208,7 +210,7 @@ class TestNoveltyDetector:
                 why_it_matters='Test',
                 entities=[],
                 novelty=NoveltyInfo(label='NEW', reason='Test', first_seen_utc=datetime.now(timezone.utc).isoformat()),
-                ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+                ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
                 evidence=[],
                 suggested_actions=[]
             )
@@ -235,7 +237,7 @@ class TestNoveltyDetector:
                 why_it_matters='Test',
                 entities=[],
                 novelty=NoveltyInfo(label=label, reason='Test', first_seen_utc=datetime.now(timezone.utc).isoformat()),
-                ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, actionability_score=0.5, final_score=0.5),
+                ranking=RankingScores(relevance_score=0.5, urgency_score=0.5, credibility_score=0.5, impact_score=0.5, actionability_score=0.5, final_score=0.5),
                 evidence=[],
                 suggested_actions=[]
             )
@@ -410,3 +412,59 @@ class TestMemoryManager:
         # Should be able to retrieve the item
         assert item_mem is not None
         assert item_mem.fingerprint == 'fp1'
+
+    def test_clear_memory(self, tmp_path):
+        """Test clearing memory"""
+        manager = MemoryManager(memory_dir=tmp_path)
+        manager.record_item("u1", "fp1", "h1", "s1", "t1")
+        manager.clear_memory("u1")
+        assert not manager.has_seen("u1", "fp1")
+
+    def test_prune_old_items(self, tmp_path):
+        """Test pruning old items"""
+        from packages.memory.memory_manager import ItemMemory
+        manager = MemoryManager(memory_dir=tmp_path)
+        # Record recent item
+        manager.record_item("u1", "recent", "h1", "s1", "t1")
+        
+        # Record old item (manually manipulate memory file)
+        memory = manager._load_memory("u1")
+        memory["old"] = ItemMemory(
+            fingerprint="old",
+            content_hash="h2",
+            first_seen_utc="2020-01-01T00:00:00+00:00",
+            last_seen_utc="2020-01-01T00:00:00+00:00",
+            seen_count=1,
+            source="s1",
+            item_type="t1"
+        )
+        manager._save_memory("u1", memory)
+        
+        pruned_count = manager.prune_old_items("u1", days_to_keep=30)
+        assert pruned_count == 1
+        assert not manager.has_seen("u1", "old")
+        assert manager.has_seen("u1", "recent")
+
+    def test_prune_empty_memory(self, tmp_path):
+        """Test pruning empty memory returns 0"""
+        manager = MemoryManager(memory_dir=tmp_path)
+        assert manager.prune_old_items("nonexistent", days_to_keep=30) == 0
+
+    def test_load_memory_error(self, tmp_path):
+        """Test handling of corrupt memory file"""
+        manager = MemoryManager(memory_dir=tmp_path)
+        # Create a corrupt JSON file
+        file_path = manager._get_user_file("corrupt_user")
+        with open(file_path, 'w') as f:
+            f.write("invalid json {")
+        
+        # Should catch exception and return empty dict
+        memory = manager._load_memory("corrupt_user")
+        assert memory == {}
+
+    def test_save_memory_error(self, tmp_path):
+        """Test handling of save memory error"""
+        manager = MemoryManager(memory_dir=tmp_path)
+        with patch('builtins.open', side_effect=IOError("Save failed")):
+            # Should not raise
+            manager._save_memory("u1", {})

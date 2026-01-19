@@ -1,0 +1,24 @@
+{
+  "email:289e5175e02c788c": {
+    "fingerprint": "email:289e5175e02c788c",
+    "content_hash": "783290bc1e9d",
+    "first_seen_utc": "2026-01-19T04:34:45.661561+00:00",
+    "last_seen_utc": "2026-01-19T07:05:07.616641+00:00",
+    "seen_count": 25,
+    "source": "gmail",
+    "item_type": "email",
+    "title": "Test item1",
+    "last_updated_utc": "2026-01-19T04:34:45.661519+00:00"
+  },
+  "gmail:item1": {
+    "fingerprint": "gmail:item1",
+    "content_hash": "2ed5c0ddf053",
+    "first_seen_utc": "2026-01-19T04:34:45.662263+00:00",
+    "last_seen_utc": "2026-01-19T07:05:07.617517+00:00",
+    "seen_count": 25,
+    "source": "gmail",
+    "item_type": "email",
+    "title": "Test item1",
+    "last_updated_utc": "2026-01-19T04:34:45.662173+00:00"
+  }
+}

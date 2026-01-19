@@ -167,8 +167,8 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Set up environment variables
-cp .env.example .env
-# Edit .env with your database credentials
+# Create backend/.env with your configuration
+# See docs/guides/QUICKSTART.md for configuration options
 
 # Initialize database
 alembic upgrade head
@@ -221,7 +221,7 @@ OPENAI_API_KEY=sk-your-key
 
 ### MCP Integrations (Gmail, Calendar, Tasks)
 
-See [MCP_CONNECTOR_SETUP.md](MCP_CONNECTOR_SETUP.md) for detailed OAuth setup instructions.
+See [MCP_CONNECTOR_SETUP.md](docs/guides/MCP_CONNECTOR_SETUP.md) for detailed OAuth setup instructions.
 
 ```bash
 # Enable in backend/.env
@@ -313,7 +313,7 @@ python scripts/test_synthesis.py
 │       └── types/             # TypeScript types
 │
 ├── memory_store/              # User memory files (created at runtime)
-├── doc/                       # Technical documentation
+├── docs/                      # Technical documentation
 └── docker-compose.yml         # Local dev environment
 ```
 
@@ -398,7 +398,7 @@ final_score =
 
 ## 🤝 Contributing
 
-Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+Contributions welcome! Please see [CONTRIBUTING.md](docs/development/CONTRIBUTING.md) for:
 - Development setup
 - Code style guidelines
 - Pull request process
@@ -420,4 +420,4 @@ Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 **Built with ❤️ for people drowning in digital noise**
 
-Ready to reclaim your mornings? See [QUICKSTART.md](QUICKSTART.md) to get started! ☀️
+Ready to reclaim your mornings? See [QUICKSTART.md](docs/guides/QUICKSTART.md) to get started! ☀️

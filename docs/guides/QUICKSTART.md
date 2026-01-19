@@ -391,9 +391,9 @@ docker-compose exec postgres psql -U postgres -d morning_brief -c "SELECT COUNT(
    - See [TESTING.md](./TESTING.md) for comprehensive testing guide
 
 2. **Read the docs:**
-   - [DEV_LOG.md](DEV_LOG.md) - Understanding how everything works
-   - [MCP_CONNECTOR_SETUP.md](MCP_CONNECTOR_SETUP.md) - Set up Google OAuth
-   - [DATABASE_SETUP.md](DATABASE_SETUP.md) - Database management
+   - [DEV_LOG.md](../development/DEV_LOG.md) - Understanding how everything works
+   - [MCP_CONNECTOR_SETUP.md](./MCP_CONNECTOR_SETUP.md) - Set up Google OAuth
+   - [DATABASE_SETUP.md](./DATABASE_SETUP.md) - Database management
 
 3. **Customize your brief:**
    - Configure user preferences
@@ -428,8 +428,8 @@ You now have a complete system that:
 
 ## 🆘 Need Help?
 
-- Check [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for current status
-- Review [README.md](README.md) for complete documentation
-- See [doc/implementation_spec.md](doc/implementation_spec.md) for technical details
+- Check [IMPLEMENTATION_STATUS.md](../development/IMPLEMENTATION_STATUS.md) for current status
+- Review [README.md](../../README.md) for complete documentation
+- See [docs/architecture/implementation_spec.md](../architecture/implementation_spec.md) for technical details
 
 **Happy briefing!** 📊

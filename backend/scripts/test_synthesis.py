@@ -36,6 +36,7 @@ def create_sample_items() -> list[BriefItem]:
                 relevance_score=0.80,
                 urgency_score=1.00,
                 credibility_score=0.95,
+                impact_score=0.90,
                 actionability_score=0.20,
                 final_score=0.78
             ),
@@ -58,6 +59,7 @@ def create_sample_items() -> list[BriefItem]:
                 relevance_score=0.65,
                 urgency_score=0.70,
                 credibility_score=0.90,
+                impact_score=0.80,
                 actionability_score=0.60,
                 final_score=0.68
             ),
