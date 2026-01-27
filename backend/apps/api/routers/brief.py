@@ -1,5 +1,6 @@
 """Brief endpoints"""
 import logging
+import os
 from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
@@ -101,12 +102,18 @@ async def _run_brief_generation(
     user_id: str,
     since_timestamp: datetime,
     user_preferences: dict,
+    serpapi_key: str = None,
 ):
     """
     Background task to run brief generation.
 
     This runs the orchestrator and stores the result in the database.
     """
+    # Set API keys from parameters
+    import os
+    if serpapi_key:
+        os.environ['SERPAPI_API_KEY'] = serpapi_key
+
     from packages.database.connection import SessionLocal
     from packages.orchestrator import run_brief_generation
 
@@ -118,13 +125,15 @@ async def _run_brief_generation(
             run.status = "running"
             db.commit()
 
-        # Run the orchestrator
-        logger.info(f"Starting brief generation for user {user_id}, run {run_id}")
+        # Determine modules to run based on user preferences
+        enabled_modules = user_preferences.get("enabled_modules", ["gmail", "calendar", "tasks", "news", "research", "flights"])
+        logger.info(f"Starting brief generation for user {user_id}, run {run_id}, modules: {enabled_modules}")
+
         brief_bundle = await run_brief_generation(
             user_id=user_id,
             user_preferences=user_preferences,
             since=since_timestamp,
-            modules=["gmail", "calendar", "tasks"],  # Default modules
+            modules=enabled_modules,
         )
 
         # Store the result
@@ -179,6 +188,9 @@ async def trigger_brief_run(
     if run_orchestrator:
         # Schedule background task to run orchestrator
         user_preferences = user.settings_json or {}
+        serpapi_key = os.getenv('SERPAPI_API_KEY')
+        # Add API key to user preferences so orchestrator can access it
+        user_preferences['serpapi_key'] = serpapi_key
         background_tasks.add_task(
             _run_brief_generation,
             run_id=run.id,

@@ -4,12 +4,27 @@
 
 ## ✨ What It Does
 
-Your morning brief:
+Your morning brief includes:
+
+### Core Communications
 - 📧 Fetches unread emails from **Gmail**
 - 📅 Shows upcoming events from **Google Calendar**
 - ✅ Lists pending tasks from **Google Tasks**
 - 🐦 Monitors posts from **Twitter/X** (optional)
 - 💼 Tracks updates from **LinkedIn** (optional)
+
+### Lifestyle Intelligence
+- ✈️ **Flights**: Real-time flight status and alerts
+- 🍽️ **Dining**: Restaurant recommendations and reviews
+- 🗺️ **Travel**: Hotel deals and destination insights
+- 🏪 **Local**: Nearby business recommendations
+- 🛒 **Shopping**: Product deals and price tracking
+
+### Research & Discovery
+- 📰 **News**: Curated news based on your interests
+- 🔍 **Research**: Web research on topics you care about
+- 🤖 **AI Search**: Intelligent web search with summaries
+- 📺 **YouTube Analysis**: Video content summarization
 
 Then intelligently:
 - 🔍 **Filters** out items you've already seen
@@ -101,16 +116,61 @@ Then intelligently:
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- (Optional) Python 3.11+ and Node.js 20+ for local development
+- **Python 3.11+**
+- **Node.js 18+**
+- **Docker & Docker Compose** (for full stack) OR
+- **SQLite** (for simple local dev)
 
-### 1. Clone and Start
+### Configuration
+
+1. **Set up environment:**
+   ```bash
+   # Copy configuration template
+   cp .env.example .env
+
+   # Edit with your API keys
+   nano .env
+   ```
+
+2. **Check configuration:**
+   ```bash
+   python scripts/check_config.py
+   ```
+
+### Local Development
+
+1. **Install dependencies:**
+   ```bash
+   make install
+   ```
+
+2. **Configure LLM:**
+   - **Option A: LM Studio (Local)**
+     ```bash
+     # Download LM Studio, load a model, start local server
+     # Set LLM_PROVIDER=openai and LLM_ENDPOINT=http://localhost:1234/v1
+     ```
+   - **Option B: Ollama (Local)**
+     ```bash
+     ollama pull llama3.2
+     # Set LLM_PROVIDER=ollama
+     ```
+   - **Option C: Claude/OpenAI (Cloud)**
+     ```bash
+     # Set appropriate API keys in .env
+     ```
+
+3. **Launch:**
+   ```bash
+   ./scripts/launch.sh
+   ```
+   - Frontend: http://localhost:3000
+   - Backend: http://localhost:8000
+   - API Docs: http://localhost:8000/docs
+
+### Docker Development
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd pal
-
 # Start all services (PostgreSQL, Redis, Backend, Frontend)
 docker-compose up -d
 
@@ -120,14 +180,6 @@ make db-init
 # Check status
 docker-compose ps
 ```
-
-### 2. Access the Application
-
-- **Frontend Dashboard**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-
-### 3. Configure (Optional)
 
 See [QUICKSTART.md](docs/guides/QUICKSTART.md) and [MCP_CONNECTOR_SETUP.md](docs/guides/MCP_CONNECTOR_SETUP.md) for:
 - Setting up Google OAuth (Gmail, Calendar, Tasks)
@@ -167,7 +219,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Set up environment variables
-# Create backend/.env with your configuration
+# Create .env with your configuration
 # See docs/guides/QUICKSTART.md for configuration options
 
 # Initialize database

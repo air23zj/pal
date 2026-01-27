@@ -69,7 +69,7 @@ class ClaudeClient(LLMClient):
             model: Claude model (default: claude-3-sonnet-20240229)
             api_key: Anthropic API key (default: from ANTHROPIC_API_KEY env)
         """
-        super().__init__(model or "claude-3-sonnet-20240229")
+        super().__init__(model or "claude-3.5-haiku")
         self.api_key = api_key or os.getenv("ANTHROPIC_API_KEY")
         self._client = None
     
@@ -182,13 +182,88 @@ class OllamaClient(LLMClient):
             raise RuntimeError(f"Ollama API error: {e}")
 
 
+class GeminiClient(LLMClient):
+    """Google Gemini API client"""
+
+    def __init__(
+        self,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None
+    ):
+        """
+        Initialize Gemini client.
+
+        Args:
+            model: Gemini model (default: gemini-2.5-flash-lite)
+            api_key: Google AI API key (default: from GEMINI_API_KEY env)
+        """
+        super().__init__(model or "gemini-2.5-flash-lite")
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        self._client = None
+
+    def is_available(self) -> bool:
+        """Check if Gemini API key is configured"""
+        return bool(self.api_key)
+
+    async def generate(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        max_tokens: int = 1000,
+        temperature: float = 0.7,
+        **kwargs
+    ) -> str:
+        """
+        Generate text using Google Gemini.
+
+        Args:
+            prompt: User prompt
+            system_prompt: Optional system prompt (added to user prompt)
+            max_tokens: Maximum tokens to generate
+            temperature: Sampling temperature
+            **kwargs: Additional parameters
+
+        Returns:
+            Generated text
+        """
+        try:
+            import google.generativeai as genai
+
+            if not self._client:
+                genai.configure(api_key=self.api_key)
+                self._client = genai.GenerativeModel(self.model)
+
+            # Combine system prompt with user prompt
+            full_prompt = prompt
+            if system_prompt:
+                full_prompt = f"System: {system_prompt}\n\nUser: {prompt}"
+
+            response = self._client.generate_content(
+                full_prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=temperature,
+                    max_output_tokens=max_tokens,
+                )
+            )
+
+            if response and response.text:
+                return response.text.strip()
+            else:
+                raise RuntimeError("Empty response from Gemini API")
+
+        except Exception as e:
+            logger.error(f"Gemini API error: {e}")
+            raise RuntimeError(f"Gemini API error: {e}")
+
+
 class OpenAIClient(LLMClient):
     """OpenAI API client"""
     
     def __init__(
         self,
         model: Optional[str] = None,
-        api_key: Optional[str] = None
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None
     ):
         """
         Initialize OpenAI client.
@@ -196,14 +271,16 @@ class OpenAIClient(LLMClient):
         Args:
             model: OpenAI model (default: gpt-4)
             api_key: OpenAI API key (default: from OPENAI_API_KEY env)
+            base_url: Custom API base URL (default: from OPENAI_BASE_URL env)
         """
-        super().__init__(model or "gpt-4")
+        super().__init__(model or "gpt-4o-mini")
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        self.base_url = base_url or os.getenv("OPENAI_BASE_URL")
         self._client = None
     
     def is_available(self) -> bool:
-        """Check if OpenAI API key is configured"""
-        return bool(self.api_key)
+        """Check if OpenAI API key is configured or base_url is set (for local servers like LM Studio)"""
+        return bool(self.api_key) or bool(self.base_url)
     
     async def generate(
         self,
@@ -221,7 +298,10 @@ class OpenAIClient(LLMClient):
             from openai import AsyncOpenAI
             
             if not self._client:
-                self._client = AsyncOpenAI(api_key=self.api_key)
+                client_kwargs = {"api_key": self.api_key}
+                if self.base_url:
+                    client_kwargs["base_url"] = self.base_url
+                self._client = AsyncOpenAI(**client_kwargs)
             
             messages = []
             if system_prompt:
@@ -262,6 +342,14 @@ def get_llm_client(
         RuntimeError: If no available LLM provider found
     """
     provider = provider or os.getenv("LLM_PROVIDER", "").lower()
+
+    # Get model - use effective_llm_model if no explicit model provided
+    if not model:
+        try:
+            from packages.shared.config import settings
+            model = settings.effective_llm_model
+        except ImportError:
+            model = os.getenv("LLM_MODEL")
     
     # Try specified provider first
     if provider == "claude":
@@ -274,6 +362,10 @@ def get_llm_client(
             return client
     elif provider == "openai":
         client = OpenAIClient(model=model, **kwargs)
+        if client.is_available():
+            return client
+    elif provider in ["gemini", "google"]:
+        client = GeminiClient(model=model, **kwargs)
         if client.is_available():
             return client
     
@@ -297,7 +389,16 @@ def get_llm_client(
             return client
     except Exception:
         pass
-    
+
+    # Try Gemini
+    try:
+        client = GeminiClient(model=model)
+        if client.is_available():
+            logger.info("✅ Using Gemini API")
+            return client
+    except Exception:
+        pass
+
     # Try OpenAI
     try:
         client = OpenAIClient(model=model)

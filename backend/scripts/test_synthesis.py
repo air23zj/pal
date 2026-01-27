@@ -9,6 +9,20 @@ from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+# Load environment variables from .env file
+def load_env_file():
+    """Load .env file if it exists"""
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    key, value = line.split('=', 1)
+                    os.environ[key] = value
+
+load_env_file()
+
 from packages.shared.schemas import BriefItem, Entity, NoveltyInfo, RankingScores, Evidence, SuggestedAction, ModuleResult
 from packages.editor import get_llm_client, BriefSynthesizer
 

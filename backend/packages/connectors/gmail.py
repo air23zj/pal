@@ -29,11 +29,20 @@ class GmailConnector(BaseConnector):
     Connector for Gmail via Google API.
     Fetches emails and normalizes them to a standard format.
     """
-    
+
+    def __init__(self, api_key: Optional[str] = None):
+        """Initialize Gmail connector with optional API key (not used for OAuth)."""
+        self._api_key = api_key
+
     @property
     def source_name(self) -> str:
         return "gmail"
-    
+
+    def is_available(self) -> bool:
+        """Check if Gmail integration is available (credentials exist)."""
+        creds_path = os.getenv("GMAIL_CREDENTIALS_PATH", "credentials/gmail_credentials.json")
+        return os.path.exists(creds_path)
+
     async def connect(self) -> bool:
         """
         Authenticate and connect to Gmail API.

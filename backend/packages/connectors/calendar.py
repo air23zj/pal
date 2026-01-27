@@ -27,11 +27,20 @@ class CalendarConnector(BaseConnector):
     Connector for Google Calendar via Google API.
     Fetches calendar events and normalizes them.
     """
-    
+
+    def __init__(self, api_key: Optional[str] = None):
+        """Initialize Calendar connector with optional API key (not used for OAuth)."""
+        self._api_key = api_key
+
     @property
     def source_name(self) -> str:
         return "calendar"
-    
+
+    def is_available(self) -> bool:
+        """Check if Calendar integration is available (credentials exist)."""
+        creds_path = os.getenv("CALENDAR_CREDENTIALS_PATH", "credentials/calendar_credentials.json")
+        return os.path.exists(creds_path)
+
     async def connect(self) -> bool:
         """
         Authenticate and connect to Calendar API.

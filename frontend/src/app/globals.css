@@ -2,26 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Apple-inspired design system */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1d1d1f;
+  --surface: #ffffff;
+  --surface-secondary: #f5f5f7;
+  --border: #e5e5e7;
+  --text-primary: #1d1d1f;
+  --text-secondary: #48484a;
+  --text-tertiary: #636366;
+  --accent: #007aff;
+  --success: #34c759;
+  --warning: #ff9500;
+  --error: #ff3b30;
 }
 
+/* Dark mode support */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #000000;
+    --foreground: #f2f2f7;
+    --surface: #1c1c1e;
+    --surface-secondary: #2c2c2e;
+    --border: #38383a;
+    --text-primary: #f2f2f7;
+    --text-secondary: #aeaeb2;
+    --text-tertiary: #8e8e93;
+    --accent: #0a84ff;
   }
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
-  color: var(--foreground);
+  color: var(--text-primary);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom component styles */
+@layer components {
+  .surface {
+    @apply bg-white border border-neutral-200 shadow-apple;
+  }
+
+  .surface-secondary {
+    @apply bg-neutral-50 border border-neutral-200;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white font-medium px-4 py-2 rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-apple-sm;
+  }
+
+  .btn-secondary {
+    @apply bg-neutral-100 text-neutral-800 font-medium px-4 py-2 rounded-lg hover:bg-neutral-200 active:bg-neutral-300 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 px-3 py-2 rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-apple border border-neutral-200 hover:shadow-apple-md transition-shadow duration-200;
+  }
+
+  .card-header {
+    @apply px-6 py-4 border-b border-neutral-200;
+  }
+
+  .card-body {
+    @apply px-6 py-4;
+  }
+
+  .input-primary {
+    @apply w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-150 bg-white;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
   }
 }

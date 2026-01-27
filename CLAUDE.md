@@ -127,10 +127,55 @@ When modifying schemas: update Python first, then TypeScript, then verify both s
 
 ## LLM Configuration
 
-Set in `backend/.env`:
+Set in `.env`:
 ```bash
 LLM_PROVIDER=ollama       # or "claude" or "openai"
 LLM_MODEL=llama3.2        # model name
 ANTHROPIC_API_KEY=...     # if using Claude
 OPENAI_API_KEY=...        # if using OpenAI
 ```
+
+---
+
+## AI Coding Workflow Guidelines (Empirical Notes, Dec 2025)
+
+This section captures hard-won lessons from heavy agent-assisted development. These observations should guide both AI behavior and human-AI collaboration.
+
+### Known Failure Modes (Watch Out For These)
+
+Models make **subtle conceptual errors**, not syntax errors. The most common patterns:
+
+1. **Wrong assumptions** - Making assumptions on your behalf and running with them without checking. Always surface assumptions explicitly.
+2. **No confusion management** - Not seeking clarifications, not surfacing inconsistencies, not presenting tradeoffs, not pushing back when appropriate.
+3. **Sycophancy** - Being too agreeable. Push back when something seems wrong or suboptimal.
+4. **Over-engineering** - Overcomplicating code and APIs, bloating abstractions, adding unnecessary configurability.
+5. **Code bloat** - Implementing 1000 lines when 100 would do. Always ask: "couldn't this be simpler?"
+6. **Dead code accumulation** - Not cleaning up after refactoring. Remove what's no longer needed.
+7. **Collateral changes** - Modifying/removing comments and code orthogonal to the task at hand.
+
+### Effective Patterns (Do More Of These)
+
+1. **Declarative over imperative** - Don't tell the AI what to do step-by-step. Give success criteria and let it loop until met. This creates leverage.
+2. **Tests first** - Write tests first, then implement until they pass. This is where agent tenacity shines.
+3. **Naive then optimize** - Write the naive algorithm that is very likely correct first, then optimize while preserving correctness.
+4. **Plan mode for complex work** - Use plan mode for anything non-trivial. There's a need for lightweight inline planning too.
+5. **Human as hawk** - Watch code changes carefully in an IDE. The AI handles generation; you handle discrimination (reviewing).
+6. **Simplicity challenges** - When code feels bloated, ask "couldn't you just do X instead?" The AI will often immediately find a 10x simpler solution.
+
+### The New Workflow Reality
+
+- **80/20 flip**: Many engineers have gone from 80% manual coding to 80% agent coding in weeks.
+- **Speedup vs expansion**: The main effect isn't just doing things faster—it's doing things that wouldn't have been worth coding before, and approaching code that was previously blocked by knowledge gaps.
+- **Tenacity advantage**: Agents never get tired or demoralized. They'll work at something for 30 minutes where a human would have given up.
+- **Fun preservation**: The drudgery is removed; what remains is the creative part. Less feeling stuck/blocked.
+- **Skill atrophy**: Generation (writing) and discrimination (reading) are different brain capabilities. Manual coding skills will fade; reviewing skills persist.
+
+### Working Style Recommendation
+
+Run a few Claude Code sessions in terminal windows/tabs on the left, IDE on the right for viewing code + manual edits. The AI generates, you discriminate and guide.
+
+### Open Questions
+
+- Does the productivity gap between mean and max engineers grow with AI assistance?
+- Do generalists increasingly outperform specialists? (LLMs excel at micro fill-in-the-blanks, humans still needed for macro strategy)
+- What does mature LLM coding feel like? StarCraft? Factorio? Conducting an orchestra?

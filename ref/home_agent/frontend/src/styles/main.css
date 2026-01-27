@@ -1,0 +1,64 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@layer components {
+  .fade-transition {
+    @apply transition-opacity duration-300 ease-in-out;
+  }
+
+  .glass-effect {
+    @apply bg-white/95 backdrop-blur border border-white/20;
+  }
+
+  .tab {
+    @apply px-6 py-3 font-medium cursor-pointer transition-all duration-300 flex items-center gap-3 relative;
+    @apply bg-white shadow-sm rounded-md border-2 border-transparent;
+  }
+
+  .tab.active {
+    @apply text-primary-600 bg-primary-100 border-primary-500;
+  }
+
+  .tab:not(.active) {
+    @apply text-gray-600 hover:text-gray-800;
+  }
+
+  .prose {
+    @apply max-w-none text-gray-700 leading-relaxed;
+  }
+
+  .prose h1, .prose h2, .prose h3 {
+    @apply text-gray-900 font-semibold mt-8 mb-4;
+  }
+
+  .prose p {
+    @apply my-4;
+  }
+
+  .prose ul, .prose ol {
+    @apply pl-6 my-4;
+  }
+
+  .prose li {
+    @apply my-2;
+  }
+
+  .prose blockquote {
+    @apply border-l-4 border-primary-500 pl-4 text-gray-600 italic my-6;
+  }
+
+  .youtube-summary {
+    @apply bg-gradient-to-r from-white to-gray-50 rounded-2xl shadow-lg;
+  }
+
+  .key-points {
+    @apply bg-gray-50 border-l-4 border-primary-500 p-4 my-4 rounded-r-lg;
+  }
+
+  .feature-card {
+    @apply transition-transform duration-200 hover:-translate-y-1;
+  }
+}

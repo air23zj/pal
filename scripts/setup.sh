@@ -12,9 +12,9 @@ echo "✅ Docker and Docker Compose found"
 echo ""
 
 # Create env file if it doesn't exist
-if [ ! -f backend/.env ]; then
-    echo "Creating backend/.env file..."
-    cat > backend/.env << EOF
+if [ ! -f .env ]; then
+    echo "Creating .env file..."
+    cat > .env << EOF
 # Morning Brief AGI - Environment Configuration
 
 # Runtime Configuration
@@ -42,9 +42,9 @@ MCP_TASKS_ENABLED=false
 APP_ENV=development
 LOG_LEVEL=INFO
 EOF
-    echo "✅ Created backend/.env"
+    echo "✅ Created .env"
 else
-    echo "ℹ️  backend/.env already exists, skipping"
+    echo "ℹ️  .env already exists, skipping"
 fi
 echo ""
 

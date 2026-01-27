@@ -13,6 +13,7 @@ from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime, timezone, timedelta
 import asyncio
 import logging
+import os
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -89,7 +90,7 @@ class BriefOrchestrator:
         Args:
             since: Fetch items since this timestamp (default: last 24h)
             modules: List of modules to include (default: all)
-                     Options: "gmail", "calendar", "tasks", "twitter", "linkedin"
+                     Options: "gmail", "calendar", "tasks", "keep", "twitter", "linkedin", "research", "news", "flights", "dining", "travel", "local", "shopping"
         
         Returns:
             Complete BriefBundle
@@ -173,18 +174,39 @@ class BriefOrchestrator:
         for module in modules:
             if module == "gmail":
                 from packages.connectors.gmail import GmailConnector
-                tasks.append(GmailConnector().fetch(since=since))
+                connector = GmailConnector()
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since))
                 module_names.append("gmail")
+                else:
+                    self.warnings.append("Gmail module not available - Google credentials not configured")
                 
             elif module == "calendar":
                 from packages.connectors.calendar import CalendarConnector
-                tasks.append(CalendarConnector().fetch(since=since))
+                connector = CalendarConnector()
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since))
                 module_names.append("calendar")
+                else:
+                    self.warnings.append("Calendar module not available - Google credentials not configured")
                 
             elif module == "tasks":
                 from packages.connectors.tasks import TasksConnector
-                tasks.append(TasksConnector().fetch(since=since))
+                connector = TasksConnector()
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since))
                 module_names.append("tasks")
+                else:
+                    self.warnings.append("Tasks module not available - Google credentials not configured")
+
+            elif module == "keep":
+                from packages.connectors.keep import KeepConnector
+                connector = KeepConnector()
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since))
+                    module_names.append("keep")
+                else:
+                    self.warnings.append("Keep module not available - Google credentials not configured")
                 
             elif module == "twitter":
                 self.warnings.append("Twitter integration is using experimental BrowserAgent setup")
@@ -206,6 +228,83 @@ class BriefOrchestrator:
                 tasks.append(fetch_linkedin())
                 module_names.append("linkedin")
                 
+            elif module == "research":
+                from packages.connectors.research import ResearchConnector
+                # Pass API key directly if available in preferences
+                serper_key = self.user_preferences.get('serper_key') or os.getenv('SERPER_SEARCH_API_KEY')
+                connector = ResearchConnector(api_key=serper_key)
+                if connector.is_available():
+                    tasks.append(connector.fetch_messages(since=since, user_preferences=self.user_preferences))
+                    module_names.append("research")
+                else:
+                    self.warnings.append("Research module not available - SerpApi key not configured")
+
+            elif module == "news":
+                from packages.connectors.news import NewsConnector
+                # Pass API key directly if available in preferences
+                serpapi_key = self.user_preferences.get('serpapi_key') or os.getenv('SERPAPI_API_KEY')
+                connector = NewsConnector(api_key=serpapi_key)
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since, user_preferences=self.user_preferences))
+                    module_names.append("news")
+                else:
+                    self.warnings.append("News module not available - SerpApi key not configured")
+
+            elif module == "flights":
+                from packages.connectors.flights import FlightsConnector
+                # Pass API key directly if available in preferences
+                serpapi_key = self.user_preferences.get('serpapi_key') or os.getenv('SERPAPI_API_KEY')
+                connector = FlightsConnector(api_key=serpapi_key)
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since, user_preferences=self.user_preferences))
+                    module_names.append("flights")
+                else:
+                    self.warnings.append("Flights module not available - SerpApi key not configured")
+
+            elif module == "dining":
+                from packages.connectors.dining import DiningConnector
+                # Pass API key directly if available in preferences
+                serpapi_key = self.user_preferences.get('serpapi_key') or os.getenv('SERPAPI_API_KEY')
+                connector = DiningConnector(api_key=serpapi_key)
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since, user_preferences=self.user_preferences))
+                    module_names.append("dining")
+                else:
+                    self.warnings.append("Dining module not available - SerpApi key not configured")
+
+            elif module == "travel":
+                from packages.connectors.travel import TravelConnector
+                # Pass API key directly if available in preferences
+                serpapi_key = self.user_preferences.get('serpapi_key') or os.getenv('SERPAPI_API_KEY')
+                connector = TravelConnector(api_key=serpapi_key)
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since, user_preferences=self.user_preferences))
+                    module_names.append("travel")
+                else:
+                    self.warnings.append("Travel module not available - SerpApi key not configured")
+
+            elif module == "local":
+                from packages.connectors.local import LocalConnector
+                # Pass API key directly if available in preferences
+                serpapi_key = self.user_preferences.get('serpapi_key') or os.getenv('SERPAPI_API_KEY')
+                connector = LocalConnector(api_key=serpapi_key)
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since, user_preferences=self.user_preferences))
+                    module_names.append("local")
+                else:
+                    self.warnings.append("Local module not available - SerpApi key not configured")
+
+            elif module == "shopping":
+                from packages.connectors.shopping import ShoppingConnector
+                # Pass API key directly if available in preferences
+                serpapi_key = self.user_preferences.get('serpapi_key') or os.getenv('SERPAPI_API_KEY')
+                connector = ShoppingConnector(api_key=serpapi_key)
+                if connector.is_available():
+                    tasks.append(connector.fetch(since=since, user_preferences=self.user_preferences))
+                    module_names.append("shopping")
+                else:
+                    self.warnings.append("Shopping module not available - SerpApi key not configured")
+
             else:
                 self.warnings.append(f"Unknown module: {module}")
         
@@ -257,6 +356,12 @@ class BriefOrchestrator:
                     for item_data in data:
                         item = Normalizer.normalize_social_post(item_data, source)
                         all_items.append(item)
+
+                elif source == "research":
+                    # Research items are already BriefItem objects
+                    for item in data:
+                        if isinstance(item, BriefItem):
+                        all_items.append(item)
                         
             except Exception as e:
                 self.errors.append(f"Normalization error in {source}: {e}")
@@ -271,9 +376,24 @@ class BriefOrchestrator:
         """Apply novelty detection to items"""
         # Flatten raw data for novelty detection
         all_raw_items = []
-        for data in raw_data.values():
+        for source, data in raw_data.items():
             if isinstance(data, list):
-                all_raw_items.extend(data)
+                for item in data:
+                    if isinstance(item, BriefItem):
+                        # For sources that return BriefItem objects (like research),
+                        # create a dict representation for fingerprinting
+                        item_dict = {
+                            'title': item.title,
+                            'summary': item.summary,
+                            'timestamp_utc': item.timestamp_utc,
+                            'source_id': item.item_ref,
+                            'url': getattr(item, 'url', None),
+                            'metadata': item.metadata,
+                        }
+                        all_raw_items.append(item_dict)
+                    else:
+                        # Raw dict data from other connectors
+                        all_raw_items.append(item)
         
         # Detect novelty
         items_with_novelty = self.novelty_detector.detect_novelty_batch(

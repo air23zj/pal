@@ -157,7 +157,7 @@ asyncio.run(test())
 
 ### 6. Update Docker Environment
 
-Add to `backend/.env`:
+Add to `.env`:
 
 ```bash
 # MCP Connectors

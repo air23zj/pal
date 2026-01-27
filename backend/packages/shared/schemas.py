@@ -74,6 +74,9 @@ class BriefItem(BaseModel):
     evidence: List[Evidence] = Field(default_factory=list)
     suggested_actions: List[SuggestedAction] = Field(default_factory=list)
 
+    # Optional metadata for source-specific information
+    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Source-specific metadata")
+
 
 # ============================================================================
 # Module Result Schema

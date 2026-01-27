@@ -280,7 +280,60 @@ class Normalizer:
             evidence=Normalizer.create_evidence(item_data, source),
             suggested_actions=Normalizer.create_suggested_actions(item_data, source, type),
         )
-    
+
+    @staticmethod
+    def normalize_keep_item(item_data: Dict[str, Any]) -> BriefItem:
+        """Normalize Google Keep note to BriefItem"""
+        source = "keep"
+        type = "note"
+        source_id = item_data['source_id']
+
+        # Generate stable ID
+        item_ref = Normalizer.generate_stable_id(source, type, source_id)
+
+        # Create summary based on note type
+        note_type = item_data.get('note_type', 'text')
+        summary_parts = [f"Type: {note_type}"]
+
+        if item_data.get('labels'):
+            summary_parts.append(f"Labels: {', '.join(item_data['labels'][:3])}")
+
+        if item_data.get('is_pinned'):
+            summary_parts.append("📌 Pinned")
+
+        if item_data.get('is_urgent'):
+            summary_parts.append("🚨 Urgent")
+
+        summary = " | ".join(summary_parts)
+
+        # Handle checklist items
+        if note_type == "list" and item_data.get('checklist_items'):
+            total_items = len(item_data['checklist_items'])
+            checked_items = sum(1 for item in item_data['checklist_items'] if item.get('is_checked', False))
+            summary += f" | Checklist: {checked_items}/{total_items} completed"
+
+        # Handle attachments
+        if item_data.get('has_attachments'):
+            attachment_count = len(item_data.get('attachments', []))
+            summary += f" | {attachment_count} attachment{'s' if attachment_count != 1 else ''}"
+
+        return BriefItem(
+            item_ref=item_ref,
+            source=source,
+            type=type,
+            timestamp_utc=item_data['timestamp_utc'],
+            source_id=source_id,
+            url=item_data.get('url'),
+            title=item_data['title'],
+            summary=summary,
+            why_it_matters="Personal note/reminder (importance scoring pending)",
+            entities=Normalizer.extract_entities(item_data, source),
+            novelty=Normalizer.create_novelty_info(),
+            ranking=Normalizer.create_initial_ranking(),
+            evidence=Normalizer.create_evidence(item_data, source),
+            suggested_actions=Normalizer.create_suggested_actions(item_data, source, type),
+        )
+
     @staticmethod
     def normalize_social_post(item_data: Dict[str, Any], source: str) -> BriefItem:
         """
@@ -419,6 +472,8 @@ def normalize_connector_result(result: ConnectorResult) -> List[BriefItem]:
                 brief_item = Normalizer.normalize_calendar_item(item_data)
             elif result.source == "tasks":
                 brief_item = Normalizer.normalize_task_item(item_data)
+            elif result.source == "keep":
+                brief_item = Normalizer.normalize_keep_item(item_data)
             elif result.source in ["twitter", "x", "linkedin"]:
                 brief_item = Normalizer.normalize_social_post(item_data, result.source)
             else:

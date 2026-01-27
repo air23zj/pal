@@ -71,18 +71,18 @@ ollama pull llama3.2
 # Start server
 ollama serve
 
-# Configure in backend/.env
-echo "LLM_PROVIDER=ollama" >> backend/.env
-echo "LLM_MODEL=llama3.2" >> backend/.env
+# Configure in .env
+echo "LLM_PROVIDER=ollama" >> .env
+echo "LLM_MODEL=llama3.2" >> .env
 ```
 
 **☁️ Claude API (Best Quality)**
 ```bash
 # Get API key from https://console.anthropic.com
 
-# Configure in backend/.env
-echo "LLM_PROVIDER=claude" >> backend/.env
-echo "ANTHROPIC_API_KEY=sk-ant-your-key" >> backend/.env
+# Configure in .env
+echo "LLM_PROVIDER=claude" >> .env
+echo "ANTHROPIC_API_KEY=sk-ant-your-key" >> .env
 ```
 
 **🔄 Test It**
@@ -276,7 +276,34 @@ npm run dev
 
 ## 📊 Configuration Reference
 
-### Environment Variables (backend/.env)
+### YouTube Proxy Setup (Optional)
+
+If you encounter "IP blocked" errors when using YouTube summarization, you can work around YouTube's rate limiting by using a proxy:
+
+#### Option 1: Webshare Residential Proxies (Recommended)
+```bash
+# Get residential proxies from https://www.webshare.io/
+# Use "Residential" proxy package (NOT "Proxy Server" or "Static Residential")
+
+# Add to .env:
+YOUTUBE_PROXY_URL=http://username:password@proxy.webshare.io:80
+```
+
+#### Option 2: Generic HTTP Proxy
+```bash
+# For any HTTP proxy service
+YOUTUBE_PROXY_URL=http://user:pass@your-proxy.com:8080
+```
+
+#### Option 3: Free Proxies (Not Recommended)
+```bash
+# Free proxies often don't work and may be unreliable
+YOUTUBE_PROXY_URL=http://123.45.67.89:8080
+```
+
+**Note:** Without a proxy, YouTube may temporarily block your IP after a few requests. The proxy allows you to continue using YouTube summarization without interruption.
+
+### Environment Variables (.env)
 
 ```bash
 # Database
@@ -287,6 +314,9 @@ LLM_PROVIDER=ollama  # or "claude" or "openai"
 LLM_MODEL=llama3.2
 # ANTHROPIC_API_KEY=sk-ant-...  # for Claude
 # OPENAI_API_KEY=sk-...         # for OpenAI
+
+# YouTube (optional - helps with IP blocking)
+# YOUTUBE_PROXY_URL=http://user:pass@proxy.example.com:8080
 
 # MCP Connectors (optional)
 MCP_GMAIL_ENABLED=true

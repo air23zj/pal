@@ -26,7 +26,7 @@ pytz==2024.1
 # Vector Database & Embeddings
 qdrant-client==1.7.0
 sentence-transformers==2.2.2
-torch==2.1.2
+torch==2.5.1
 nltk==3.8.1
 
 # MCP & Google APIs
@@ -38,6 +38,10 @@ google-api-python-client==2.116.0
 # LLM Clients
 anthropic==0.75.0
 openai==1.58.1
+
+# Summarization
+youtube-transcript-api==0.6.2
+langchain==0.1.0
 
 # Browser automation
 browser-use==0.1.13
